@@ -1,0 +1,4 @@
+(executable
+ (public_name ahrefs_chat)
+ (name main)
+ (libraries ahrefs_chat))
