@@ -1,0 +1,11 @@
+(library
+  (preprocess (pps ppx_expect))
+  (inline_tests)
+  (name encoding_expect)
+  (modules encoding_expect test_utils)
+  (libraries ahrefs_chat))
+
+(test
+ (name encoding)
+ (modules encoding)
+ (libraries qcheck ahrefs_chat))
