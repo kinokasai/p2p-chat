@@ -1,0 +1,5 @@
+(library
+ (preprocess (pps ppx_deriving_yojson ppx_expect ppx_deriving.show lwt_ppx))
+ (inline_tests)
+ (name ahrefs_chat)
+ (libraries containers unix lwt lwt.unix lwt_ppx ptime ptime.clock))
