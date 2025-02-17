@@ -5,16 +5,13 @@ let cleanup socket = Lwt_unix.close socket
 
 let connect_and_serve socket addr =
   let* () = Lwt_unix.connect socket addr in
-  let* () = Ui_system.print_default () in
   let output = Lwt_io.of_fd ~mode:Lwt_io.output socket in
   let input = Lwt_io.of_fd ~mode:Lwt_io.input socket in
-  let write_socket = SocketWriter.run output in
-  let read_socket = SocketReader.run input in
-  let read_stdin = StdinReader.run Lwt_io.stdin in
-  let update_ui = UiUpdater.run () in
+  let read_socket = SocketReader.run input output in
+  let read_stdin = StdinReader.run Lwt_io.stdin output in
   (* We don't care which one finished and why, we're out of here *)
   let* (_ : result) =
-    Lwt.pick [read_stdin; read_socket; write_socket; update_ui]
+    Lwt.pick [read_stdin; read_socket;]
   in
   Lwt.return 0
 

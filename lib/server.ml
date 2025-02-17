@@ -7,14 +7,11 @@ let rec serve socket =
   try%lwt
     let* () = Lwt_fmt.eprintf "waiting for a connection...@." in
     let* (csocket, _) = Lwt_unix.accept ~cloexec:true socket in
-    let* () = Ui_system.print_default () in
     let input = Lwt_io.of_fd ~mode:Lwt_io.input csocket in
     let output = Lwt_io.of_fd ~mode:Lwt_io.output csocket in
-    let read_socket = SocketReader.run input in
-    let read_stdin = StdinReader.run Lwt_io.stdin in
-    let write_socket = SocketWriter.run output in
-    let update_ui = UiUpdater.run () in
-    let* result = Lwt.pick [read_socket; write_socket; read_stdin; update_ui] in
+    let read_socket = SocketReader.run input output in
+    let read_stdin = StdinReader.run Lwt_io.stdin output in
+    let* result = Lwt.pick [read_socket; read_stdin;] in
     match result with
     (* Stdin being closed means we Ctrl-D probably.*)
     | ClosedStdin -> Lwt.return_unit
@@ -47,7 +44,6 @@ let () = Sys.set_signal Sys.sigpipe Sys.Signal_ignore
   through `wakeup_later_exn`. We wait on either `signal` or the 
   normal path before ending and cleaning.
   *)
-
 let lwt_run socket addr =
   try%lwt
     let (signal, sig_rslvr) = Lwt.wait () in
@@ -72,7 +68,6 @@ let lwt_run socket addr =
 
 let run port =
   let open Lwt_unix in
-  let open! Lwt.Infix in
   let host = Unix.inet_addr_loopback in
   let addr = ADDR_INET (host, port) in
   let hostr = Unix.string_of_inet_addr host in

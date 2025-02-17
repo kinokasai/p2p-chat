@@ -3,7 +3,7 @@ open! Utils
 
 type msg_type = Ack | Send [@@deriving yojson]
 
-type msg = Ack of Id.t | Msg of {id : int; contents : string}
+type msg = Ack | Msg of {contents : string}
 [@@deriving yojson]
 
 type encoded = string
@@ -13,13 +13,13 @@ let from_encoded_string t = t
 let to_encoded_string t = t
 
 let max_encoding_len =
-  let msg = Msg {id = max_int; contents = ""} in
+  let msg = Msg {contents = ""} in
   let str = Yojson.Safe.to_string @@ msg_to_yojson msg in
   String.length str
 
 module Encode = struct
-  let ack id =
-    let msg = Ack id in
+  let ack () =
+    let msg = Ack in
     let json = msg_to_yojson msg in
     Yojson.Safe.to_string json
 
@@ -28,14 +28,14 @@ module Encode = struct
     let contents_list = String.split_len msg max_chunk_size in
     contents_list
 
-  let encode_small id contents =
-    let msg = Msg {contents; id} in
+  let encode_small contents =
+    let msg = Msg {contents} in
     let json = msg_to_yojson msg in
     Yojson.Safe.to_string json
 
-  let split_encode id contents =
+  let split_encode contents =
     let contents_list = split_msg contents in
-    List.map (encode_small id) contents_list
+    List.map encode_small contents_list
 end
 
 module Decode = struct
